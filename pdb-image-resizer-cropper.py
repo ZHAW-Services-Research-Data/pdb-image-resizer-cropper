@@ -1,4 +1,3 @@
-
 import streamlit as st
 from PIL import Image, ImageOps
 import io
@@ -92,3 +91,37 @@ if uploaded_file is not None:
         <div class="frame-container">
             <div class="frame">
                 data:image/png;base64,{img_base64}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # Bild für Download erzeugen
+    if new_size[0] <= frame_width or new_size[1] <= frame_height:
+        canvas = Image.new("RGBA", (frame_width, frame_height), (255, 255, 255, 255))
+        paste_x = max(0, (frame_width - new_size[0]) // 2)
+        paste_y = max(0, (frame_height - new_size[1]) // 2)
+        mask = img_resized if img_resized.mode == "RGBA" else None
+        canvas.paste(img_resized, (paste_x, paste_y), mask=mask)
+        cropped_img = canvas
+    else:
+        box = (x_pos, y_pos, x_pos + frame_width, y_pos + frame_height)
+        cropped_img = img_resized.crop(box)
+
+    st.write("### Vorschau des zugeschnittenen Ausschnitts")
+    st.image(cropped_img, caption="Ausgewählter Ausschnitt", use_column_width=False)
+
+    # Download-Button
+    out_bytes = io.BytesIO()
+    cropped_img.save(out_bytes, format="PNG")
+    out_bytes.seek(0)
+
+    st.download_button(
+        label="Ausschnitt herunterladen",
+        data=out_bytes,
+        file_name="ausschnitt.png",
+        mime="image/png"
+    )
+else:
+    st.info("Bitte ein Bild hochladen (JPG, JPEG oder PNG).")
