@@ -4,6 +4,7 @@ from PIL import Image, ImageOps
 import io
 import base64
 
+# Seiteneinstellungen
 st.set_page_config(page_title="Bildbearbeitung mit Rahmen & Zoom", layout="centered")
 st.title("Bildbearbeitung mit festem Rahmen und Zoom")
 
@@ -42,21 +43,21 @@ if uploaded_file is not None:
 
     # CSS-Offsets für die Vorschau
     if new_size[0] <= frame_width:
-        x_css = (frame_width - new_size[0]) // 2  # positiv
+        x_css = (frame_width - new_size[0]) // 2
     else:
-        x_css = -x_pos  # negativ
+        x_css = -x_pos
 
     if new_size[1] <= frame_height:
-        y_css = (frame_height - new_size[1]) // 2  # positiv
+        y_css = (frame_height - new_size[1]) // 2
     else:
-        y_css = -y_pos  # negativ
+        y_css = -y_pos
 
     # PNG + Base64 für HTML-Vorschau
     buf = io.BytesIO()
     img_resized.save(buf, format="PNG")
     img_base64 = base64.b64encode(buf.getvalue()).decode("utf-8")
 
-    # >>>> WICHTIG: echte HTML-Tags + ... <<<<
+    # HTML + CSS für den Rahmen und das Bild
     st.markdown(
         f"""
         <style>
@@ -91,37 +92,3 @@ if uploaded_file is not None:
         <div class="frame-container">
             <div class="frame">
                 data:image/png;base64,{img_base64}
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    # Bild für Download erzeugen
-    if new_size[0] <= frame_width or new_size[1] <= frame_height:
-        canvas = Image.new("RGBA", (frame_width, frame_height), (255, 255, 255, 255))
-        paste_x = max(0, (frame_width - new_size[0]) // 2)
-        paste_y = max(0, (frame_height - new_size[1]) // 2)
-        mask = img_resized if img_resized.mode == "RGBA" else None
-        canvas.paste(img_resized, (paste_x, paste_y), mask=mask)
-        cropped_img = canvas
-    else:
-        box = (x_pos, y_pos, x_pos + frame_width, y_pos + frame_height)
-        cropped_img = img_resized.crop(box)
-
-    st.write("### Vorschau des zugeschnittenen Ausschnitts")
-    st.image(cropped_img, caption="Ausgewählter Ausschnitt", use_column_width=False)
-
-    # Download-Button
-    out_bytes = io.BytesIO()
-    cropped_img.save(out_bytes, format="PNG")
-    out_bytes.seek(0)
-
-    st.download_button(
-        label="Ausschnitt herunterladen",
-        data=out_bytes,
-        file_name="ausschnitt.png",
-        mime="image/png"
-    )
-else:
-    st.info("Bitte ein Bild hochladen (JPG, JPEG oder PNG).")
