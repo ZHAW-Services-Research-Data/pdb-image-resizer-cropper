@@ -51,7 +51,7 @@ if uploaded_file is not None:
     img_resized.save(buf, format="PNG")
     img_base64 = base64.b64encode(buf.getvalue()).decode("utf-8")
 
-    # HTML für Anzeige
+    # HTML für Anzeige (ACHTUNG: Klammern in CSS müssen in f-Strings escaped werden!)
     html_code = f"""
     <style>
     .frame-container {{
@@ -84,7 +84,7 @@ if uploaded_file is not None:
     </style>
     <div class="frame-container">
         <div class="frame">
-            <img src="data:image/png;base64,{}
+            data:image/png;base64,{img_base64}
         </div>
     </div>
     """
