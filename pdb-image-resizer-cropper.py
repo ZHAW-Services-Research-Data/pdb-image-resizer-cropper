@@ -5,20 +5,25 @@ import io
 import base64
 import streamlit.components.v1 as components
 
+# Seiteneinstellungen
 st.set_page_config(page_title="Bildbearbeitung mit Rahmen & Zoom", layout="centered")
 st.title("Bildbearbeitung mit festem Rahmen und Zoom")
 
+# Datei-Upload
 uploaded_file = st.file_uploader("Bild hochladen", type=["jpg", "jpeg", "png"])
 if uploaded_file is not None:
+    # Bild laden und orientieren
     img = Image.open(uploaded_file)
     img = ImageOps.exif_transpose(img)
     if img.mode not in ("RGB", "RGBA"):
         img = img.convert("RGB")
     width, height = img.size
 
+    # Rahmen-Parameter
     frame_width, frame_height = 2000, 750
     margin = 75
 
+    # Zoom-Berechnung
     min_zoom_needed = max(frame_width / width, frame_height / height)
     min_zoom = min_zoom_needed
     max_zoom = 4.0
@@ -26,22 +31,27 @@ if uploaded_file is not None:
 
     zoom = st.slider("Zoom-Faktor", min_zoom, max_zoom, default_zoom, 0.05)
 
+    # Bild skalieren
     new_size = (int(width * zoom), int(height * zoom))
     img_resized = img.resize(new_size, Image.LANCZOS)
 
+    # Positionssteuerung
     max_x = max(0, new_size[0] - frame_width)
     max_y = max(0, new_size[1] - frame_height)
 
     x_pos = st.slider("X-Position", 0, max_x, 0, 1) if new_size[0] > frame_width else 0
     y_pos = st.slider("Y-Position", 0, max_y, 0, 1) if new_size[1] > frame_height else 0
 
+    # CSS-Offsets
     x_css = (frame_width - new_size[0]) // 2 if new_size[0] <= frame_width else -x_pos
     y_css = (frame_height - new_size[1]) // 2 if new_size[1] <= frame_height else -y_pos
 
+    # Bild in Base64 umwandeln
     buf = io.BytesIO()
     img_resized.save(buf, format="PNG")
     img_base64 = base64.b64encode(buf.getvalue()).decode("utf-8")
 
+    # HTML für Anzeige
     html_code = f"""
     <style>
     .frame-container {{
@@ -74,12 +84,12 @@ if uploaded_file is not None:
     </style>
     <div class="frame-container">
         <div class="frame">
-            <ata:image/png;base64,{img_base64}
+            <img src="data:image/png;base64,{}
         </div>
     </div>
     """
 
-    # WICHTIG: Verwende components.html statt st.markdown
+    # HTML-Komponente einbinden
     components.html(html_code, height=frame_height + margin*2 + 50)
 
     # Vorschau und Download
