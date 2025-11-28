@@ -6,7 +6,7 @@ import io
 # ----------------------------
 # Einstellungen & Titel
 # ----------------------------
-st.set_page_config(page_title="Bildbearbeitung mit Rahmen & Zoom", layout="centered")
+st.set_page_config(page_title="Billdbearbeitung mit Rahmen & Zoom", layout="centered")
 st.title("Bildbearbeitung mit festem Rahmen, Zoom & Prozent-Verschiebung")
 
 # ----------------------------
