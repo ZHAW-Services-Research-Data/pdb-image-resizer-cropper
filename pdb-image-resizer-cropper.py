@@ -10,6 +10,30 @@ st.set_page_config(page_title="Bildbearbeitung mit Rahmen & Zoom", layout="cente
 st.title("Bildbearbeitung mit festem Rahmen, Zoom & Prozent-Verschiebung")
 
 # ----------------------------
+# Zielgröße auswählen
+# ----------------------------
+size_label = st.radio(
+    "Zielgröße auswählen",
+    options=[
+        "Haupt-/Stimmungsbild (2340 x 950 px)",
+        "Weiteres Bild für Bildkarussell (1600 x 900 px)",
+    ],
+    index=0,
+    horizontal=False,
+)
+
+# Mapping von Auswahl zu Innenmaß (frame)
+if "2340 x 950" in size_label:
+    frame_w, frame_h = 2340, 950
+else:
+    frame_w, frame_h = 1600, 900
+
+# Außenrand & Rahmen (nur Vorschau)
+outer_margin = 75                    # "weißer Rand" außen herum (bleibt im Download erhalten)
+border_thickness = 10                # grüne Rahmenlinie (nur Vorschau)
+border_color = (0, 128, 0)           # Grün
+
+# ----------------------------
 # Datei-Upload
 # ----------------------------
 uploaded_file = st.file_uploader("Bild hochladen", type=["jpg", "jpeg", "png"])
@@ -22,14 +46,6 @@ if uploaded_file is not None:
         img = img.convert("RGB")
 
     orig_w, orig_h = img.size
-
-    # ----------------------------
-    # Rahmen-Parameter
-    # ----------------------------
-    frame_w, frame_h = 2000, 750        # feste Rahmen-Größe (Innenmaß)
-    outer_margin = 75                    # "weißer Rand" außen herum
-    border_thickness = 10                # grüne Rahmenlinie (nur Vorschau)
-    border_color = (0, 128, 0)           # Grün
 
     # ----------------------------
     # Steuer-Elemente
@@ -46,6 +62,7 @@ if uploaded_file is not None:
 
     # ----------------------------
     # Hilfsfunktion: Prozent → Offset
+    # Mappt −50..+50% auf 0..available
     # ----------------------------
     def percent_to_offset(percent: int, available: int) -> int:
         return int(((percent + 50) / 100.0) * max(available, 0))
@@ -54,11 +71,13 @@ if uploaded_file is not None:
     # Berechnung horizontal
     # ----------------------------
     if new_w >= frame_w:
+        # Bild breiter als Rahmen: aus dem Bild croppen
         available_src_x = new_w - frame_w
         crop_x = percent_to_offset(x_percent, available_src_x)
         paste_x = 0
         crop_w = frame_w
     else:
+        # Bild schmaler als Rahmen: im Canvas verschieben
         available_canvas_x = frame_w - new_w
         paste_x = percent_to_offset(x_percent, available_canvas_x)
         crop_x = 0
@@ -68,11 +87,13 @@ if uploaded_file is not None:
     # Berechnung vertikal
     # ----------------------------
     if new_h >= frame_h:
+        # Bild höher als Rahmen: aus dem Bild croppen
         available_src_y = new_h - frame_h
         crop_y = percent_to_offset(y_percent, available_src_y)
         paste_y = 0
         crop_h = frame_h
     else:
+        # Bild flacher als Rahmen: im Canvas verschieben
         available_canvas_y = frame_h - new_h
         paste_y = percent_to_offset(y_percent, available_canvas_y)
         crop_y = 0
@@ -92,7 +113,7 @@ if uploaded_file is not None:
     canvas.paste(region, (paste_x, paste_y), mask=mask)
 
     # ----------------------------
-    # Endbild ohne Rahmen (für Download)
+    # Endbild ohne grünen Rahmen (für Download)
     # ----------------------------
     final_w = frame_w + 2 * outer_margin
     final_h = frame_h + 2 * outer_margin
@@ -110,16 +131,7 @@ if uploaded_file is not None:
     # ----------------------------
     # Anzeige
     # ----------------------------
-    st.write("### Vorschau")
-    st.image(preview_img, caption="Bild im Rahmen (nur Vorschau)", use_column_width=False)
-
-    # ----------------------------
-    # Download (ohne Rahmen)
-    # ----------------------------
-    out_bytes = io.BytesIO()
-    final_img.save(out_bytes, format="PNG")
-    out_bytes.seek(0)
-    st.download_button("Ausschnitt herunterladen", data=out_bytes, file_name="ausschnitt.png", mime="image/png")
-
-else:
-    st.info("Bitte ein Bild hochladen (JPG, JPEG oder PNG).")
+    st.write(
+        f"### Vorschau — Zielmaß: {frame_w} × {frame_h} px "
+        f"(mit weißem Außenrand: {final_w} × {final_h} px)"
+    )
