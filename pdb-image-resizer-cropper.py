@@ -132,5 +132,18 @@ if uploaded_file is not None:
     # Anzeige
     # ----------------------------
     st.write(
-        f"### Vorschau — Zielmass: {frame_w} × {frame_h} px "
+        f"### Vorschau — Zielmaß: {frame_w} × {frame_h} px "
+        f"(mit weißem Außenrand: {final_w} × {final_h} px)"
     )
+    st.image(preview_img, caption="Bild im Rahmen (nur Vorschau)", use_column_width=False)
+
+    # ----------------------------
+    # Download (ohne grünen Rahmen)
+    # ----------------------------
+    out_bytes = io.BytesIO()
+    final_img.save(out_bytes, format="PNG")
+    out_bytes.seek(0)
+    default_name = f"ausschnitt_{frame_w}x{frame_h}.png"
+    st.download_button("Ausschnitt herunterladen", data=out_bytes, file_name=default_name, mime="image/png")
+
+else:
