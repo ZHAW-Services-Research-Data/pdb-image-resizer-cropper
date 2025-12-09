@@ -10,7 +10,7 @@ st.set_page_config(page_title="Bildbearbeitung mit Rahmen & Zoom", layout="cente
 st.title("Bildbearbeitung mit festem Rahmen, Zoom & Prozent-Verschiebung")
 
 # ----------------------------
-# Zielgröße auswählen
+# Zielgröße auswählen (Radio-Buttons)
 # ----------------------------
 size_label = st.radio(
     "Zielgröße auswählen",
@@ -28,9 +28,9 @@ if "2340 x 950" in size_label:
 else:
     frame_w, frame_h = 1600, 900
 
-# Außenrand & Rahmen (nur Vorschau)
-outer_margin = 75                    # "weißer Rand" außen herum (bleibt im Download erhalten)
-border_thickness = 10                # grüne Rahmenlinie (nur Vorschau)
+# Außenrand & Rahmen (Rahmen nur in der Vorschau)
+outer_margin = 75                    # Weißer Außenrand (bleibt im Download erhalten)
+border_thickness = 10                # Dicke der grünen Rahmenlinie (nur Vorschau)
 border_color = (0, 128, 0)           # Grün
 
 # ----------------------------
@@ -65,6 +65,7 @@ if uploaded_file is not None:
     # Mappt −50..+50% auf 0..available
     # ----------------------------
     def percent_to_offset(percent: int, available: int) -> int:
+        # −50% => 0; 0% => available/2; +50% => available
         return int(((percent + 50) / 100.0) * max(available, 0))
 
     # ----------------------------
@@ -121,10 +122,11 @@ if uploaded_file is not None:
     final_img.paste(canvas, (outer_margin, outer_margin))
 
     # ----------------------------
-    # Vorschau-Bild: Kopie + grüner Rahmen nur zur Anzeige
+    # Vorschau-Bild: Kopie + grüner Rahmen NUR zur Anzeige
     # ----------------------------
     preview_img = final_img.copy()
     draw = ImageDraw.Draw(preview_img)
+    # Rahmenrechteck exakt auf die Innenkante legen
     rect = [outer_margin, outer_margin, outer_margin + frame_w - 1, outer_margin + frame_h - 1]
     draw.rectangle(rect, outline=border_color, width=border_thickness)
 
@@ -147,3 +149,4 @@ if uploaded_file is not None:
     st.download_button("Ausschnitt herunterladen", data=out_bytes, file_name=default_name, mime="image/png")
 
 else:
+    st.info("Bitte ein Bild hochladen (JPG, JPEG oder PNG).")
