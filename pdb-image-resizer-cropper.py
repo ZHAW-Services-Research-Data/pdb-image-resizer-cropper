@@ -132,6 +132,5 @@ if uploaded_file is not None:
     # Anzeige
     # ----------------------------
     st.write(
-        f"### Vorschau — Zielmaß: {frame_w} × {frame_h} px "
-        f"(mit weißem Außenrand: {final_w} × {final_h} px)"
+        f"### Vorschau — Zielmass: {frame_w} × {frame_h} px "
     )
